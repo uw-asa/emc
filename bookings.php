@@ -8,7 +8,7 @@
 //$DEBUG=1;
 
 include('emccal.php');
-include('../dbinfo.php');
+include('dbinfo.php');
 $Database="emc";
 
 $Link_ID = mssql_connect($dbhost, $dbuser, $dbpass);

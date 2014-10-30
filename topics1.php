@@ -6,7 +6,7 @@
 
 $DEBUG=1;
 
-include('../dbinfo.php');
+include('dbinfo.php');
 $Database="emc";
 
 $Link_ID = mssql_connect($dbhost, $dbuser, $dbpass);

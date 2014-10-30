@@ -5,7 +5,7 @@ require_once('../lucid_f.php');
 f_set_parm('name', 'titles');
 //f_set_parm('title', 'STF Equipment Request');
 f_set_parm('parent', db_getPageID('emc'));
-f_set_parm('template', db_getTemplateID('blog'));
+f_set_parm('template', db_getTemplateID('uwit'));
 f_set_parm('style', db_getStyleID('blog'));
 f_set_parm('markup', 'none');
 
@@ -13,7 +13,7 @@ ob_start();
 
 //$DEBUG=1;
 
-include('../dbinfo.php');
+include('dbinfo.php');
 $Database="emc";
 
 $Link_ID = mssql_connect($dbhost, $dbuser, $dbpass);

@@ -128,7 +128,7 @@ for ($time = $start_time; $time < $end_time; $time += 30 * 60)
 foreach ($times as $row => $time)
         $data[$row] = array(timestr($time), '', '', '', timestr($time), '', '', '', timestr($time));
 
-include('../dbinfo.php');
+include('dbinfo.php');
 include('../misc.php');
 $Database="emc";
 

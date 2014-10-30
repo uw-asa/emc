@@ -2,7 +2,7 @@
 
 $DEBUG=$_GET['debug'];
 
-include('../dbinfo.php');
+include('dbinfo.php');
 include('../misc.php');
 $Database="emc";
 
