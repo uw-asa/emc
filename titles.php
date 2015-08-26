@@ -122,7 +122,6 @@ if ($abstracts) {
 }
 
 if ($index) {
-  f_set_page('emc/titles?index');
   f_set_parm('title', 'Titles: Index');
 }
 
@@ -135,6 +134,7 @@ if (isset($_GET['formats'])) {
 }
 
 if ($topicid) {
+  $index = true;
   $Query_String = 'SELECT Topic FROM FullTopicNames
   WHERE TopicID=' . $topicid;
   if ($DEBUG) echo("<pre>$Query_String</pre>\n");
@@ -167,7 +167,6 @@ if (isset($_GET['added'])) {
 }
 
 if ($new) {
-  f_set_page('emc/titles?new');
   f_set_parm('title', 'Titles: New');
   $where[] = "MID.[Date Added] > '" . date('Y-m-d', strtotime('-1 year')) . "'";
   $swhere[] = "SID IN (SELECT SID FROM [SID - MID Junction]
@@ -271,7 +270,6 @@ SELECT DISTINCT FORMATS.FORMAT, Description
   }
   else {
     f_set_parm('template', db_getTemplateID('none'));
-    f_set_parm('style', db_getStyleID('none'));
   }
 } elseif ($new) {
 	$Updated_Query = 'SELECT CONVERT(varchar, MAX([Date Added]), 106) AS updated FROM MID WHERE MID IN (SELECT MID FROM FID WHERE WITHDRAWN = 0)';
@@ -279,9 +277,6 @@ SELECT DISTINCT FORMATS.FORMAT, Description
 	$row = mssql_fetch_array($Query_ID);
 	$updated = $row['updated'];
 	echo "Updated: $updated\n";
-	echo $f_pageData['content'];
-} elseif ($index) {
-	echo $f_pageData['content'];
 } elseif ($withdrawn) {
 	$Updated_Query = 'SELECT CONVERT(varchar, MAX(DATE_WITHDRAWN), 106) AS updated FROM FID WHERE MID NOT IN (SELECT MID FROM FID WHERE WITHDRAWN = 0)';
 	$Query_ID = mssql_query($Updated_Query, $Link_ID);
@@ -310,8 +305,8 @@ SELECT DISTINCT FORMATS.FORMAT, Description
 	$row = mssql_fetch_array($Query_ID);
 	$updated = $row['updated'];
 	echo "Updated: $updated\n";
-	echo $f_pageData['content'];
 }
+echo $f_pageData['content'];
 
 if (! $mid)
 {
@@ -336,7 +331,7 @@ if (is_resource($Main_Query))
 {
 while ($row = mssql_fetch_array($Main_Query)) {
 
-  if ($index) {
+  if (!$index && !$abstracts) {
 	if (strncasecmp($row['Alphabetic Title'], $lastTitle, 1)) {
 	  $idx = strtoupper(substr($row['Alphabetic Title'], 0, 1));
           if ($rest)
