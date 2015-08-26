@@ -1,6 +1,6 @@
 <?php
 
-header("Location: http://guides.lib.washington.edu/emc");
+header("Location: http://guides.lib.washington.edu/16mm_film");
 exit;
 
 
