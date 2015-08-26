@@ -1,0 +1,8 @@
+<?php
+
+$dbhost = ''; # this is from /etc/freetds/freetds.conf
+$dbuser = '';
+$dbpass = '';
+$dbname = 'EMC';
+
+?>
