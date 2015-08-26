@@ -1,15 +1,8 @@
 <?php
 
-require_once('../lucid_f.php');
-
-f_set_parm('name', 'titles');
-//f_set_parm('title', 'STF Equipment Request');
-f_set_parm('parent', db_getPageID('emc'));
-f_set_parm('template', db_getTemplateID('uwit'));
-f_set_parm('style', db_getStyleID('blog'));
-f_set_parm('markup', 'none');
-
 ob_start();
+
+require_once('../lucid_f.php');
 
 $DEBUG=$_GET['debug'];
 
@@ -31,12 +24,7 @@ else
   exit;
 }
 
-if (strpos($_SERVER['REQUEST_URI'], '.php') === false)
-{
-  $rest = true;
-}
-else
-{
+if (strpos($_SERVER['REQUEST_URI'], '.php'))
   header('Location: http://www.cte.uw.edu/emc/title/' . $mid, true, 301);
   exit;
 }
@@ -128,7 +116,7 @@ $row = mssql_fetch_array($Main_Query);
 
 f_set_parm('title', strip_tags($row['Pretty Title']));
 
-	echo " <h2>{$row['Pretty Title']}</h2>\n   <ul>\n";
+	echo "   <ul>\n";
 
 	if (strncasecmp($row['MID'], 'S', 1)) {
 
@@ -188,14 +176,7 @@ SELECT [SID - MID Junction].*, SID.[Pretty Title],
 	  if (is_resource($Query_ID))
 	  {
 		  while ($s_link = mssql_fetch_array($Query_ID)) {
-                    if ($rest)
-                      {
 			  echo '     (<a href="../title/' . $s_link['SID'] . '">';
-                      }
-                    else
-                      {
-			  echo '     (<a href="titles.php?abstracts=1&mid=' . $s_link['SID'] . '">';
-                      }
 			  if (strtotime($s_link['Date Added']) > strtotime('-1 year')) {
 				  echo '<b>';
 			  }
@@ -249,15 +230,7 @@ SELECT * FROM FullTopicNames
           $Topics_Query = mssql_query($Query_String, $Link_ID);
 
           while ($topic = mssql_fetch_array($Topics_Query)) {
-            if ($rest)
-              {
                 $topiclinks[] = '<a href="../topic/' . $topic['TopicID'] . '">' . $topic['Topic'] . '</a>';
-              }
-            else
-              {
-                $topiclinks[] = '<a href="titles.php?topicid=' . $topic['TopicID'] . '">' . $topic['Topic'] . '</a>';
-              }
-
           }
 
           echo '  <li>Topics: (' . implode(', ', $topiclinks) . ")\n";
@@ -297,14 +270,7 @@ SELECT [SID - MID Junction].*, MID.[Pretty Title],
 	  }
 	  while (list($key, $t_link) = each($t_links)) {
 		if (is_array($t_link)) {
-                  if ($rest)
-                    {
                       echo '      <li value=' . $t_link['Title Number'] . '><a href="../title/' . $t_link['MID'] . '">';
-                    }
-                  else
-                    {
-                      echo '      <li value=' . $t_link['Title Number'] . '><a href="' . $PHP_SELF . '?abstracts=1&mid=' . $t_link['MID'] . '">';
-                    }
 		  if (strtotime($t_link['Date Added']) > strtotime('-1 year')) {
 			echo '<b>';
 		  }

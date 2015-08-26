@@ -48,11 +48,7 @@ if ($new || $withdrawn)
   $index = false;
 }
 
-if (strpos($_SERVER['REQUEST_URI'], '.php') === false)
-{
-  $rest = true;
-}
-else
+if (strpos($_SERVER['REQUEST_URI'], '.php'))
 {
   $flags['abstracts'] = $abstracts;
   $flags['index'] = $index;
@@ -182,8 +178,6 @@ if (isset($_GET['title'])) {
 }
 
 if (isset($_GET['search'])) {
-  f_set_parm('title', $f_pageData['title'] . ': Search');
-
   if ($_GET['form_sent']) {
 	f_set_parm('title', $f_pageData['title'] . ': ' . $_GET['search']);
 	if ($abstracts) {
@@ -334,33 +328,13 @@ while ($row = mssql_fetch_array($Main_Query)) {
   if (!$index && !$abstracts) {
 	if (strncasecmp($row['Alphabetic Title'], $lastTitle, 1)) {
 	  $idx = strtoupper(substr($row['Alphabetic Title'], 0, 1));
-          if ($rest)
-            {
               echo '<a href="' . $idx . '">' . $idx . "</a>, \n";
-            }
-          else
-            {
-              echo '<a href="' . $PHP_SELF . '?';
-              if ($abstracts) {
-                echo 'abstracts=1&';
-              }
-              echo 'title=' . $idx . '">' . $idx . "</a>, \n";
-            }
         }
 	$lastTitle = $row['Alphabetic Title'];
 	
   } elseif ($abstracts) {
-    if ($rest)
-      {
 	echo " <ul>\n"
 	  . '  <li><a name="' . $row['MID'] . '" href="../topics/' . $row['MID'] . '">';
-      }
-    else
-      {
-	echo " <ul>\n"
-	  . '  <li><a name="' . $row['MID'] . '" href="topics.php?mid='
-	  . $row['MID'] . '">';
-      }
 	if (strtotime($row['Date Added']) > strtotime('-1 year')) {
 	  echo '<b>';
 	}
@@ -432,14 +406,7 @@ SELECT [SID - MID Junction].*, SID.[Pretty Title],
 	  if (is_resource($Query_ID))
 	  {
 		  while ($s_link = mssql_fetch_array($Query_ID)) {
-                    if ($rest)
-                      {
 			  echo '     (<a href="../title/' . $s_link['SID'] . '">';
-                      }
-                    else
-                      {
-			  echo '     (<a href="titles.php?abstracts=1&mid=' . $s_link['SID'] . '">';
-                      }
 			  if (strtotime($s_link['Date Added']) > strtotime('-1 year')) {
 				  echo '<b>';
 			  }
@@ -523,14 +490,7 @@ SELECT [SID - MID Junction].*, MID.[Pretty Title],
 	  }
 	  while (list($key, $t_link) = each($t_links)) {
 		if (is_array($t_link)) {
-                  if ($rest)
-                    {
                       echo '      <li value=' . $t_link['Title Number'] . '><a href="../title/' . $t_link['MID'] . '">';
-                    }
-                  else
-                    {
-                      echo '      <li value=' . $t_link['Title Number'] . '><a href="' . $PHP_SELF . '?abstracts=1&mid=' . $t_link['MID'] . '">';
-                    }
 		  if (strtotime($t_link['Date Added']) > strtotime('-1 year')) {
 			echo '<b>';
 		  }
@@ -556,14 +516,7 @@ SELECT [SID - MID Junction].*, MID.[Pretty Title],
 	}
 	$lastTitle = $row['Alphabetic Title'];
 
-        if ($rest)
-          {
-            echo '  <li><a href="../title/' . $row['MID'] . '">';
-          }
-        else
-          {
-            echo '  <li><a href="' . $PHP_SELF . '?abstracts=1&mid=' . $row['MID'] . '">';
-          }
+        echo '  <li><a href="../title/' . $row['MID'] . '">';
 	if (strtotime($row['Date Added']) > strtotime('-1 year')) {
 	  echo '<b>';
 	}

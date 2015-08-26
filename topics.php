@@ -20,11 +20,7 @@ if (preg_match('/^[sS]?[0-9]+$/', $_GET['mid']))
   $mid = $_GET['mid'];
 }
 
-if (strpos($_SERVER['REQUEST_URI'], '.php') === false)
-{
-  $rest = 1;
-}
-else
+if (strpos($_SERVER['REQUEST_URI'], '.php'))
 {
   header('Location: http://www.cte.uw.edu/emc/topics/' . $mid . ($withdrawn ? '?withdrawn' : ''), true, 301);
   exit;
@@ -93,15 +89,7 @@ while ($row = mssql_fetch_array($Main_Query)) {
   }
   $lastTopic = $row['Topic'];
 
-  if ($rest)
-    {
-      echo '  <li><a href="../topic/' . $row['TopicID'] . '">' . $row['Topic'] . "</a></li>\n";
-    }
-  else
-    {
-      echo '  <li><a href="titles.php?topicid=' . $row['TopicID'] . '">' . $row['Topic'] . "</a></li>\n";
-    }
-
+  echo '  <li><a href="../topic/' . $row['TopicID'] . '">' . $row['Topic'] . "</a></li>\n";
 }
 
 ?>
