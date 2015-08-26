@@ -1,15 +1,8 @@
 <?php
 
-require_once('../lucid_f.php');
-
-f_set_parm('name', 'titles');
-//f_set_parm('title', 'STF Equipment Request');
-f_set_parm('parent', db_getPageID('emc'));
-f_set_parm('template', db_getTemplateID('uwit'));
-f_set_parm('style', db_getStyleID('blog'));
-f_set_parm('markup', 'none');
-
 ob_start();
+
+require_once('../lucid_f.php');
 
 $DEBUG=$_GET['debug'];
 
@@ -75,15 +68,15 @@ else
 
   if ($topicid)
     {
-      header('Location: http://www.css.washington.edu/emc/topic/' . $topicid . $query, true, 301);
+      header('Location: http://www.cte.uw.edu/emc/topic/' . $topicid . $query, true, 301);
     }
   elseif ($mid)
     {
-      header('Location: http://www.css.washington.edu/emc/title/' . $mid . $query, true, 301);
+      header('Location: http://www.cte.uw.edu/emc/title/' . $mid . $query, true, 301);
     }
   else
     {
-      header('Location: http://www.css.washington.edu/emc/titles/' . $_GET['title'] . $query, true, 301);
+      header('Location: http://www.cte.uw.edu/emc/titles/' . $_GET['title'] . $query, true, 301);
     }
   exit;
 }
@@ -111,15 +104,7 @@ SELECT SID AS MID, Title, [Alphabetic Title],
  NULL AS lib_url
  FROM SID";
 
-$logo_color = '#339933';
-
-$banner = 'titles';
-
 if ($abstracts) {
-  $page_title = 'EMC: Abstracts';
-  $logo_color = '#993333';
-  $banner = 'abstracts';
-
   $Query_String = 'SELECT * FROM Restrictions';
   if ($DEBUG) echo("<pre>$Query_String</pre>\n");
   $Query_ID = mssql_query($Query_String, $Link_ID);
@@ -134,14 +119,11 @@ if ($abstracts) {
 	$Languages[$row['Language ID']] = $row['Language'];
   }
 
-} else {
-  $page_title = 'EMC: Titles';
-  $logo_color = '#885533';
-  $banner = 'titles';
 }
 
 if ($index) {
-  $page_title .= ': Index';
+  f_set_page('emc/titles?index');
+  f_set_parm('title', 'Titles: Index');
 }
 
 
@@ -157,16 +139,14 @@ if ($topicid) {
   WHERE TopicID=' . $topicid;
   if ($DEBUG) echo("<pre>$Query_String</pre>\n");
   $Query_ID = mssql_query($Query_String, $Link_ID);
-  $page_title = 'EMC: Topical Listings: ' . mssql_result($Query_ID, 0, 0);
+  f_set_parm('title', 'Topic: ' . mssql_result($Query_ID, 0, 0));
   $where[] = 'MID.MID IN (SELECT MID FROM [Topic - MID Junction]
   WHERE TopicID=' . $topicid . ')';
   $swhere[] = 'SID IS NULL'; // don't show series
 }
 
 if ($withdrawn) {
-  $page_title .= ': Withdrawn';
-  $logo_color = '#553377';
-  $banner = 'withdrawn';
+  f_set_parm('title', $f_pageData['title'] . ': Withdrawn');
   $where[] = 'MID.MID NOT IN (SELECT MID FROM FID WHERE WITHDRAWN = 0)';
   $swhere[] = 'SID IN (SELECT SID FROM [SID - MID Junction]
   WHERE MID NOT IN (SELECT MID FROM FID WHERE WITHDRAWN = 0))';
@@ -187,9 +167,8 @@ if (isset($_GET['added'])) {
 }
 
 if ($new) {
-  $page_title .= ': New';
-  $logo_color = '#557733';
-  $banner = 'newtitles';
+  f_set_page('emc/titles?new');
+  f_set_parm('title', 'Titles: New');
   $where[] = "MID.[Date Added] > '" . date('Y-m-d', strtotime('-1 year')) . "'";
   $swhere[] = "SID IN (SELECT SID FROM [SID - MID Junction]
   WHERE MID IN (SELECT MID FROM MID
@@ -198,18 +177,16 @@ if ($new) {
 }
 
 if (isset($_GET['title'])) {
-  $page_title .= ': ' . mssql_escape($_GET['title']);
+  f_set_parm('title', $f_pageData['title'] . ': ' . mssql_escape($_GET['title']));
   $where[] = "MID.[Alphabetic Title] LIKE '" . mssql_escape($_GET['title']) . "%'";
   $swhere[] = "[Alphabetic Title] LIKE '" . mssql_escape($_GET['title']) . "%'";
 }
 
 if (isset($_GET['search'])) {
-  $page_title .= ': Search';
-  $logo_color = '#333399';
-  $banner = 'search';
+  f_set_parm('title', $f_pageData['title'] . ': Search');
 
   if ($_GET['form_sent']) {
-	$page_title .= ': ' . $_GET['search'];
+	f_set_parm('title', $f_pageData['title'] . ': ' . $_GET['search']);
 	if ($abstracts) {
 	  $where[] = "(MID.Title LIKE '%" . mssql_escape($_GET['search']) . "%' OR MID.Abstract LIKE '%" . mssql_escape($_GET['search']) . "%')";
 	} else {
@@ -261,10 +238,6 @@ $tlorder[] = 'MID.[Alphabetic Title]';
 
 $slorder[] = 'SID.[Alphabetic Title]';
 
-f_set_parm('title', $page_title);
-
-echo "<h1>$page_title</h1>\n";
-
 if (isset($_GET['search'])) {
   if (! $_GET['supressform']) {
 ?>
@@ -306,23 +279,21 @@ SELECT DISTINCT FORMATS.FORMAT, Description
 	$row = mssql_fetch_array($Query_ID);
 	$updated = $row['updated'];
 	echo "Updated: $updated\n";
-	include('newtitles.inc');
+	echo $f_pageData['content'];
 } elseif ($index) {
-	include('absindex.inc');
+	echo $f_pageData['content'];
 } elseif ($withdrawn) {
 	$Updated_Query = 'SELECT CONVERT(varchar, MAX(DATE_WITHDRAWN), 106) AS updated FROM FID WHERE MID NOT IN (SELECT MID FROM FID WHERE WITHDRAWN = 0)';
 	$Query_ID = mssql_query($Updated_Query, $Link_ID);
 	$row = mssql_fetch_array($Query_ID);
 	$updated = $row['updated'];
 	echo "Updated: $updated\n";
-	include('withdrawn.inc');
 } elseif ($topicid) {
 	$Updated_Query = 'SELECT CONVERT(varchar, MAX([Date Added]), 106) AS updated FROM MID WHERE MID IN (SELECT MID FROM [Topic - MID Junction] WHERE TopicID=' . $topicid . ') AND MID IN (SELECT MID FROM FID WHERE WITHDRAWN = 0)';
 	$Query_ID = mssql_query($Updated_Query, $Link_ID);
 	$row = mssql_fetch_array($Query_ID);
 	$updated = $row['updated'];
 	echo "Updated: $updated\n";
-	include('topical.inc');
 } elseif ($abstracts) {
 	if ($_GET['title']) {
 		$Updated_Query = "SELECT CONVERT(varchar, MAX([Date Added]), 106) AS updated FROM MID WHERE MID IN (SELECT MID FROM FID WHERE WITHDRAWN = 0) AND MID.[Alphabetic Title] LIKE '" . mssql_escape($_GET['title']) . "%'";
@@ -339,7 +310,7 @@ SELECT DISTINCT FORMATS.FORMAT, Description
 	$row = mssql_fetch_array($Query_ID);
 	$updated = $row['updated'];
 	echo "Updated: $updated\n";
-	include('titles.inc');
+	echo $f_pageData['content'];
 }
 
 if (! $mid)

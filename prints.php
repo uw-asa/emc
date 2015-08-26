@@ -1,5 +1,9 @@
 <?php
 
+ob_start();
+
+require_once('../lucid_f.php');
+
 $DEBUG=$_GET['debug'];
 
 include('dbinfo.php');
@@ -32,14 +36,6 @@ $mid = intval($_GET['mid']);
 if ($mid) {
   $where[] = "FID.MID = $mid";
 }
-
-?>
-<html>
-<head>
-<title>Prints</title>
-</head>
-<body>
-<?php
 
 $query = "
 SELECT FID.*,
@@ -83,6 +79,4 @@ if (is_resource($result))
 </table>';
 }
 
-?>
-</body>
-</html>
+f_lucid_render(ob_get_clean());

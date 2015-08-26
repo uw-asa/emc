@@ -1,15 +1,8 @@
 <?php
 
-require_once('../lucid_f.php');
-
-f_set_parm('name', 'titles');
-//f_set_parm('title', 'STF Equipment Request');
-f_set_parm('parent', db_getPageID('emc'));
-f_set_parm('template', db_getTemplateID('uwit'));
-f_set_parm('style', db_getStyleID('blog'));
-f_set_parm('markup', 'none');
-
 ob_start();
+
+require_once('../lucid_f.php');
 
 //$DEBUG=1;
 
@@ -33,13 +26,9 @@ if (strpos($_SERVER['REQUEST_URI'], '.php') === false)
 }
 else
 {
-  header('Location: http://www.css.washington.edu/emc/topics/' . $mid . ($withdrawn ? '?withdrawn' : ''), true, 301);
+  header('Location: http://www.cte.uw.edu/emc/topics/' . $mid . ($withdrawn ? '?withdrawn' : ''), true, 301);
   exit;
 }
-
-$title = 'EMC: Topical Index';
-
-$banner = 'http://www.washington.edu/classroom/emc/topicals.gif';
 
 if (isset($mid)) {
   if (strncasecmp($mid, 'S', 1)) {
@@ -48,7 +37,7 @@ SELECT [Pretty Title] FROM MID
  WHERE MID=' . $mid;
 	if ($DEBUG) echo("<pre>$Query_String</pre>\n");
 	$Query_ID = mssql_query($Query_String, $Link_ID);
-	$title = 'EMC: Topics for: ' . mssql_result($Query_ID, 0, 0);
+	f_set_parm('title', 'Topics for: ' . mssql_result($Query_ID, 0, 0));
 
 	$where[] = '
 TopicID IN (SELECT TopicID FROM [Topic - MID Junction]
@@ -59,7 +48,7 @@ SELECT [Pretty Title] FROM SID
  WHERE SID='" . $mid . "'";
 	if ($DEBUG) echo("<pre>$Query_String</pre>\n");
 	$Query_ID = mssql_query($Query_String, $Link_ID);
-	$title = 'EMC: Topics for: ' . mssql_result($Query_ID, 0, 0);
+	f_set_parm('title', 'Topics for: ' . mssql_result($Query_ID, 0, 0));
 
 	$where[] = "
 TopicID IN (SELECT TopicID FROM [Topic - MID Junction]
@@ -89,10 +78,6 @@ if (is_array($where)) {
 if (is_array($order)) {
   $Query_String .= ' ORDER BY ' . implode(', ', $order);
 }
-
-f_set_parm('title', $title);
-
-echo "<h1>$title</h1>\n";
 
 ?>
  <ul>

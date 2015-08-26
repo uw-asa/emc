@@ -27,7 +27,7 @@ if (preg_match('/^[sS]?[0-9]+$/', $_GET['mid']))
 }
 else
 {
-  header('Location: http://www.css.washington.edu/emc/title/' . $_GET['mid'], true, 301);
+  header('Location: http://www.cte.uw/emc/title/' . $_GET['mid'], true, 301);
   exit;
 }
 
@@ -37,7 +37,7 @@ if (strpos($_SERVER['REQUEST_URI'], '.php') === false)
 }
 else
 {
-  header('Location: http://www.css.washington.edu/emc/title/' . $mid, true, 301);
+  header('Location: http://www.cte.uw.edu/emc/title/' . $mid, true, 301);
   exit;
 }
 
