@@ -118,7 +118,7 @@ if ($abstracts) {
 }
 
 if ($index) {
-  f_set_parm('title', 'Titles: Index');
+  f_set_page('emc/index');
 }
 
 
@@ -178,6 +178,7 @@ if (isset($_GET['title'])) {
 }
 
 if (isset($_GET['search'])) {
+  f_set_page('emc/search');
   if ($_GET['form_sent']) {
 	f_set_parm('title', $f_pageData['title'] . ': ' . $_GET['search']);
 	if ($abstracts) {
