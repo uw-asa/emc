@@ -25,6 +25,7 @@ else
 }
 
 if (strpos($_SERVER['REQUEST_URI'], '.php'))
+{
   header('Location: http://www.cte.uw.edu/emc/title/' . $mid, true, 301);
   exit;
 }
