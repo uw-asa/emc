@@ -3,6 +3,7 @@
 ob_start();
 
 require_once('../lucid_f.php');
+f_set_page('emc/titles');
 
 $DEBUG=$_GET['debug'];
 

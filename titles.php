@@ -48,6 +48,13 @@ if ($new || $withdrawn)
   $index = false;
 }
 
+if (strpos($_SERVER['REQUEST_URI'], 'emc/titles'))
+{
+  if (isset($_GET['search'])) {
+    header('Location: http://www.cte.uw.edu/emc/search', true, 301);
+  }
+}
+
 if (strpos($_SERVER['REQUEST_URI'], '.php'))
 {
   $flags['abstracts'] = $abstracts;
@@ -130,6 +137,7 @@ if (isset($_GET['formats'])) {
 }
 
 if ($topicid) {
+  f_set_page('emc/topics');
   $index = true;
   $Query_String = 'SELECT Topic FROM FullTopicNames
   WHERE TopicID=' . $topicid;
@@ -179,6 +187,7 @@ if (isset($_GET['title'])) {
 
 if (isset($_GET['search'])) {
   f_set_page('emc/search');
+  $index = true;
   if ($_GET['form_sent']) {
 	f_set_parm('title', $f_pageData['title'] . ': ' . $_GET['search']);
 	if ($abstracts) {
