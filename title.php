@@ -1,10 +1,5 @@
 <?php
 
-ob_start();
-
-require_once('../lucid_f.php');
-f_set_page('emc/titles');
-
 $DEBUG=$_GET['debug'];
 
 include('dbinfo.php');
@@ -116,7 +111,9 @@ $Main_Query = mssql_query($Query_String, $Link_ID);
 
 $row = mssql_fetch_array($Main_Query);
 
-f_set_parm('title', strip_tags($row['Pretty Title']));
+$page_title = strip_tags($row['Pretty Title']);
+
+echo "<h1>$page_title</h1>";
 
 	echo "   <ul>\n";
 
@@ -167,7 +164,7 @@ SELECT [SID - MID Junction].*, SID.[Pretty Title],
 	  }
           */
 	  echo ' ----- ';
-          $formats = explode('/', $row['Formats']);
+          $formats = explode('/', rtrim($row['Formats'], '/'));
           foreach ($formats as $i => $format) {
             $formats[$i] = '<a href="../prints/?mid=' . $row['MID'] . '&format=' . $format . '">' . $format . '</a>';
           }
@@ -293,7 +290,3 @@ SELECT [SID - MID Junction].*, MID.[Pretty Title],
 ?>
     </li>
    </ul>
-
-<?php
-
-f_lucid_render(ob_get_clean());

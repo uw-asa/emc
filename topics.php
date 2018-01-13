@@ -1,9 +1,5 @@
 <?php
 
-ob_start();
-
-require_once('../lucid_f.php');
-
 //$DEBUG=1;
 
 include('dbinfo.php');
@@ -12,6 +8,8 @@ $Database="emc";
 $Link_ID = mssql_connect($dbhost, $dbuser, $dbpass);
 mssql_select_db($Database)
   or die("Sorry, the system is currently down. Please try again later.");
+
+$page_title = 'Topics';
 
 $withdrawn = isset($_GET['withdrawn']);
 
@@ -33,7 +31,7 @@ SELECT [Pretty Title] FROM MID
  WHERE MID=' . $mid;
 	if ($DEBUG) echo("<pre>$Query_String</pre>\n");
 	$Query_ID = mssql_query($Query_String, $Link_ID);
-	f_set_parm('title', 'Topics for: ' . mssql_result($Query_ID, 0, 0));
+	$page_title = 'Topics for: ' . mssql_result($Query_ID, 0, 0);
 
 	$where[] = '
 TopicID IN (SELECT TopicID FROM [Topic - MID Junction]
@@ -44,7 +42,7 @@ SELECT [Pretty Title] FROM SID
  WHERE SID='" . $mid . "'";
 	if ($DEBUG) echo("<pre>$Query_String</pre>\n");
 	$Query_ID = mssql_query($Query_String, $Link_ID);
-	f_set_parm('title', 'Topics for: ' . mssql_result($Query_ID, 0, 0));
+	$page_title = 'Topics for: ' . mssql_result($Query_ID, 0, 0);
 
 	$where[] = "
 TopicID IN (SELECT TopicID FROM [Topic - MID Junction]
@@ -75,6 +73,8 @@ if (is_array($order)) {
   $Query_String .= ' ORDER BY ' . implode(', ', $order);
 }
 
+echo "<h1>$page_title</h1>";
+
 ?>
  <ul>
 <?php
@@ -94,7 +94,3 @@ while ($row = mssql_fetch_array($Main_Query)) {
 
 ?>
  </ul>
-
-<?php
-
-f_lucid_render(ob_get_clean());

@@ -1,9 +1,5 @@
 <?php
 
-ob_start();
-
-require_once('../lucid_f.php');
-
 $DEBUG=$_GET['debug'];
 
 include('dbinfo.php');
@@ -13,6 +9,8 @@ $Database="emc";
 $Link_ID = mssql_connect($dbhost, $dbuser, $dbpass);
 mssql_select_db($Database)
   or die("Sorry, the system is currently down. Please try again later.");
+
+$page_title = 'Prints';
 
 if (strpos($_SERVER['REQUEST_URI'], '.php') === false)
 {
@@ -28,12 +26,20 @@ switch ($_GET['format']) {
  case 'laserdisc':
  case 'vhs':
    $where[] = "Formats.Description = '" . $_GET['format'] . "'";
+   $page_title = $_GET['format'] . ' ' . $page_title;
    break;
 }
 
 $mid = intval($_GET['mid']);
 
 if ($mid) {
+  $Query_String = '
+SELECT [Pretty Title] FROM MID
+ WHERE MID=' . $mid;
+  if ($DEBUG) echo("<pre>$Query_String</pre>\n");
+  $Query_ID = mssql_query($Query_String, $Link_ID);
+  $page_title = $page_title . ' for: ' . mssql_result($Query_ID, 0, 0);
+
   $where[] = "FID.MID = $mid";
 }
 
@@ -59,6 +65,8 @@ $query .= "
 
 if ($DEBUG) echo("<pre>$query</pre>\n");
 
+echo "<h1>$page_title</h1>";
+
 $result = mssql_query($query, $Link_ID);
 
 if (is_resource($result))
@@ -70,13 +78,11 @@ if (is_resource($result))
     echo '
  <tr>
   <td><!-- a href="../print/' . $print['FID'] . '" -->' . $print['FID'] . '<!-- /a --></td>
-  <td>' . $print['Pretty Title'] . '</td>
+  <td><a href="../title/' . $print['MID'] . '">' . $print['Pretty Title'] . '</a></td>
   <td align="center">' . $print['format_description'] . '</td>
-  <td>' . $print['SHELF_NUMBER'] . '</td>
+  <td>' . rtrim($print['SHELF_NUMBER'], '/') . '</td>
  </tr>';
   }
   echo '
 </table>';
 }
-
-f_lucid_render(ob_get_clean());

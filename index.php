@@ -1,27 +1,6 @@
 <?php
 
-header("Location: http://guides.lib.washington.edu/16mm_film");
-exit;
-
-
-
-
-
-require_once('../lucid_f.php');
-
-f_set_parm('name', 'titles');
-//f_set_parm('title', 'STF Equipment Request');
-f_set_parm('parent', db_getPageID('emc'));
-f_set_parm('template', db_getTemplateID('uwit'));
-f_set_parm('style', db_getStyleID('blog'));
-f_set_parm('markup', 'none');
-
-ob_start();
-
-//$DEBUG=1;
-
-$banner = "emc";
-//include("bannerscript.inc.php");
+$DEBUG=$_GET['debug'];
 
 include('dbinfo.php');
 $Database="emc";
@@ -32,8 +11,6 @@ mssql_select_db($Database)
 
 $logo_color = '#339933';
 $title = 'Educational Media Collection';
-
-f_set_parm('title', $title);
 
 echo "<h1>$title</h1>\n";
 
@@ -46,6 +23,14 @@ echo "Updated: $updated\n";
 
 echo "<p>\n";
 
-readfile('http://localhost/content/?page=emc&template=none');
-
-f_lucid_render(ob_get_clean());
+?>
+<ul>
+ <li><a href="titles/?index">Index of Titles</a></li>
+ <li><a href="prints/">Index of Prints</a></li>
+ <li><a href="titles/?new">New Titles (Added within the past year)</a></li>
+ <li><a href="titles/">Abstracts of Titles</a><ul>
+   <li><a href="titles/?search">Search the Abstracts</a></li>
+ </ul></li>
+ <li><a href="topics/">Topical Index</a></li>
+ <li><a href="titles/?withdrawn">Titles Withdrawn (since 1991)</a></li>
+</ul>

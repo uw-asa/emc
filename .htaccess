@@ -1,0 +1,45 @@
+RewriteEngine On
+
+#if the file actually exists, stop rewriting, but pass through to any Alias, Redirect directives, etc
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^(.+)$ - [PT,L]
+
+#If a php script exists, use that
+RewriteCond %{DOCUMENT_ROOT}/$1.php -f
+RewriteRule ^(.+)(/.*)?$ $1.php$2 [QSA,L]
+
+#If a php script exists, use that
+RewriteCond %{DOCUMENT_ROOT}/$1.php -f
+RewriteRule ^(.+?)(/.*)?$ $1.php$2 [QSA,L]
+
+
+#emc
+RewriteRule ^titles$ titles/ [R,L]
+RewriteRule ^titles/$ titles.php [QSA,L]
+RewriteRule ^titles/(.+)$ titles.php?abstracts=1&title=$1 [QSA,L]
+
+RewriteRule ^title/(S?[0-9]+)$ title.php?mid=$1 [QSA,L]
+RewriteRule ^title/(.+)$ titles.php?title=$1 [QSA,L]
+
+RewriteRule ^prints$ prints/ [R,L]
+RewriteRule ^prints/$ prints.php [QSA,L]
+
+RewriteRule ^print/([0-9]+)$ print.php?fid=$1 [QSA,L]
+
+RewriteRule ^topics$ topics/ [R,L]
+RewriteRule ^topics/$ topics.php [QSA,L]
+RewriteRule ^topics/(S?[0-9]+)$ topics.php?mid=$1 [QSA,L]
+RewriteRule ^topics/(.+)$ topics.php?title=$1 [QSA,L]
+
+RewriteRule ^topic/([0-9]+)$ titles.php?topicid=$1 [QSA,L]
+RewriteRule ^topic/(.+)$ titles.php?topic=$1 [QSA,L]
+
+RewriteRule ^search$ search/ [R,L]
+RewriteRule ^search/$ titles/?search [QSA,L]
+
+RewriteRule ^index$ index/ [R,L]
+RewriteRule ^index/$ titles/?index [QSA,L]
+
+RewriteRule ^new$ new/ [R,L]
+RewriteRule ^new/$ titles/?new [QSA,L]
