@@ -1,25 +1,40 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.5.1/css/buttons.dataTables.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/colreorder/1.4.1/css/colReorder.dataTables.min.css"/>
+ 
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.3.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.flash.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/colreorder/1.4.1/js/dataTables.colReorder.min.js"></script>
 <?php
 
-$DEBUG=$_GET['debug'];
-
 include('dbinfo.php');
-include('../misc.php');
+include('misc.php');
 $Database="emc";
 
 $Link_ID = mssql_connect($dbhost, $dbuser, $dbpass);
 mssql_select_db($Database)
   or die("Sorry, the system is currently down. Please try again later.");
 
-$abstracts = isset($_GET['abstracts']) ? intval($_GET['abstracts']) : false;
-$index     = isset($_GET['index']);
-$new       = isset($_GET['new']);
-$withdrawn = isset($_GET['withdrawn']);
+foreach(array_keys($_GET) as $var) {
+    if ($_GET[$var] === '') {
+        $_GET[$var] = true;
+    }
+}   
+
+$index     = isset($_GET['index']) ? $_GET['index'] : false;
 $topicid   = isset($_GET['topicid']) ? intval($_GET['topicid']) : false;
 
-if (preg_match('/^[sS]?[0-9]+$/', $_GET['mid']))
+if (isset($_GET['mid']) && preg_match('/^[sS]?[0-9]+$/', $_GET['mid']))
 {
   $mid = $_GET['mid'];
-  $abstracts = true;
+  $index = false;
 }
 
 if (isset($_GET['topic']))
@@ -36,50 +51,6 @@ if (isset($_GET['title']))
 {
   
 }
-
-
-if ($new || $withdrawn)
-{
-  $abstracts = false;
-  $index = false;
-}
-
-if (false) //strpos($_SERVER['REQUEST_URI'], 'emc/titles'))
-{
-  if (isset($_GET['search'])) {
-    header('Location: http://www.cte.uw.edu/emc/search', true, 301);
-  }
-}
-
-if (false) //strpos($_SERVER['REQUEST_URI'], '.php'))
-{
-  $flags['abstracts'] = $abstracts;
-  $flags['index'] = $index;
-  $flags['new'] = $new;
-  $flags['withdrawn'] = $withdrawn;
-
-  $query = implode('&', array_keys(array_intersect($flags, array(true))));
-
-  if ($query)
-    {
-      $query = '?' . $query;
-    }
-
-  if ($topicid)
-    {
-      header('Location: http://www.cte.uw.edu/emc/topic/' . $topicid . $query, true, 301);
-    }
-  elseif ($mid)
-    {
-      header('Location: http://www.cte.uw.edu/emc/title/' . $mid . $query, true, 301);
-    }
-  else
-    {
-      header('Location: http://www.cte.uw.edu/emc/titles/' . $_GET['title'] . $query, true, 301);
-    }
-  exit;
-}
-
 
 $titles_query = "
 SELECT DISTINCT CONVERT(varchar, MID.MID) AS MID, MID.Title, MID.[Alphabetic Title],
@@ -103,23 +74,19 @@ SELECT SID AS MID, Title, [Alphabetic Title],
  NULL AS lib_url
  FROM SID";
 
-if ($abstracts) {
-  $Query_String = 'SELECT * FROM Restrictions';
-  if ($DEBUG) echo("<pre>$Query_String</pre>\n");
-  $Query_ID = mssql_query($Query_String, $Link_ID);
-  while ($row = mssql_fetch_array($Query_ID)) {
-	$Restrictions[$row['RestrictionID']] = $row['Restriction'];
-  }
-
-  $Query_String = 'SELECT * FROM Languages';
-  if ($DEBUG) echo("<pre>$Query_String</pre>\n");
-  $Query_ID = mssql_query($Query_String, $Link_ID);
-  while ($row = mssql_fetch_array($Query_ID)) {
-	$Languages[$row['Language ID']] = $row['Language'];
-  }
-
+$Query_String = 'SELECT * FROM Restrictions';
+if ($DEBUG) echo("<pre>$Query_String</pre>\n");
+$Query_ID = mssql_query($Query_String, $Link_ID);
+while ($row = mssql_fetch_array($Query_ID)) {
+    $Restrictions[$row['RestrictionID']] = $row['Restriction'];
 }
 
+$Query_String = 'SELECT * FROM Languages';
+if ($DEBUG) echo("<pre>$Query_String</pre>\n");
+$Query_ID = mssql_query($Query_String, $Link_ID);
+while ($row = mssql_fetch_array($Query_ID)) {
+    $Languages[$row['Language ID']] = $row['Language'];
+}
 
 if (isset($_GET['formats'])) {
         $where[] = "FID.FORMAT IN ('".implode("','", mssql_escape(array_keys($_GET['formats'])))."')";
@@ -129,29 +96,8 @@ if (isset($_GET['formats'])) {
 }
 
 $page_title = 'Titles';
-$page_content = '
-<p>The following is a list of the films, videocassettes, and laserdiscs obtained
-by the Educational Media Collection.</p>
-
-<ul type="circle">
-<li>(NOTE:  Titles with "use restrictions" are marked with an <b>*</b>.  
-        These restrictions
-        are the result of contractual limitations imposed by the vendor.
-        They are definite and may not be ignored.)</li>
-<li>The word (<b>Silent</b>) occurs after some titles listed below.  
-These are 16mm films which must/should be projected at silent speed, 
-ie. 18 frames per second.  Please check to see that you have 
-the proper projection equipment.  <I>Note</I>:  These titles are being 
-replaced and removed from the Collection on a gradual basis, thus eliminating
-the need for special projection equipment.</li>
-</ul>';
-
-if ($index) {
-  $page_content = '';
-}
 
 if ($topicid) {
-  $page_content = '';
   $index = true;
   $Query_String = 'SELECT Topic FROM FullTopicNames
   WHERE TopicID=' . $topicid;
@@ -163,7 +109,7 @@ if ($topicid) {
   $swhere[] = 'SID IS NULL'; // don't show series
 }
 
-if ($withdrawn) {
+if (isset($_GET['withdrawn'])) {
   $page_title = $page_title . ': Withdrawn';
   $where[] = 'MID.MID NOT IN (SELECT MID FROM FID WHERE WITHDRAWN = 0)';
   $swhere[] = 'SID IN (SELECT SID FROM [SID - MID Junction]
@@ -184,7 +130,7 @@ if (isset($_GET['added'])) {
   $tlwhere[] = "MID.[Date Added] > '" . mssql_escape($_GET['added']) . "'";
 }
 
-if ($new) {
+if (isset($_GET['new'])) {
   $page_title = 'Titles: New';
   $where[] = "MID.[Date Added] > '" . date('Y-m-d', strtotime('-1 year')) . "'";
   $swhere[] = "SID IN (SELECT SID FROM [SID - MID Junction]
@@ -200,11 +146,9 @@ if (isset($_GET['title'])) {
 }
 
 if (isset($_GET['search'])) {
-  $page_content = '';
-  $index = true;
-  if ($_GET['form_sent']) {
+    if (isset($_GET['form_sent'])) {
 	$page_title = $page_title . ': ' . $_GET['search'];
-	if ($abstracts) {
+	if (! $index) {
 	  $where[] = "(MID.Title LIKE '%" . mssql_escape($_GET['search']) . "%' OR MID.Abstract LIKE '%" . mssql_escape($_GET['search']) . "%')";
 	} else {
 	  $where[] = "MID.Title LIKE '%" . mssql_escape($_GET['search']) . "%'";
@@ -255,17 +199,23 @@ $tlorder[] = 'MID.[Alphabetic Title]';
 
 $slorder[] = 'SID.[Alphabetic Title]';
 
+?>
+<title><?= $page_title ?></title>
+</head>
+<body>
+<?php
+
 echo "<h1>$page_title</h1>";
 
 if (isset($_GET['search'])) {
-  if (! $_GET['supressform']) {
+    if (!isset($_GET['suppressform'])) {
 ?>
  <form>
   <input type="hidden" name="form_sent" value="1">
   Search the EMC Database for:
-  <br><input type="text" name="search" value="<?php echo $_GET['search']; ?>" size=30><input type="submit" value="Search">
-  <br><input type="radio" name="abstracts" value="0"<?php if (! $abstracts) { echo ' checked'; } ?>>Search Titles
-  <br><input type="radio" name="abstracts" value="1"<?php if ($abstracts) { echo ' checked'; } ?>>Search Titles and Descriptions
+  <br><input type="text" name="search" value="<?= $_GET['search']; ?>" size="30"><input type="submit" value="Search">
+  <br><input type="radio" name="index" value="1"<?php if ($index) { echo ' checked'; } ?>>Search Titles
+  <br><input type="radio" name="index" value="0"<?php if (! $index) { echo ' checked'; } ?>>Search Titles and Descriptions
   <br>Formats:
 <?php
 
@@ -277,58 +227,20 @@ SELECT DISTINCT FORMATS.FORMAT, Description
         while ($format = mssql_fetch_array($Query_ID)) {
 
 ?>
-   <input type="checkbox" name="formats[<?php echo $format['FORMAT'] ?>]" value="1"<?php if (!is_array($_GET['formats']) || $_GET['formats'][$format['FORMAT']]) { echo ' checked'; } ?>><?php echo $format['Description'] ?>
+   <input type="checkbox" name="formats[<?= $format['FORMAT'] ?>]" value="1"<?php if (!isset($_GET['formats']) || isset($_GET['formats'][$format['FORMAT']])) { echo ' checked'; } ?>><?= $format['Description'] ?>
 <?php
 
         }
 
 ?>
-  <br><input type="checkbox" name="supressform" value="1"<?php if ($_GET['supressform']) { echo ' checked'; } ?>>Plain results (for printing)
+   <br><input type="checkbox" name="suppressform" value="1"<?php if (isset($_GET['suppressform'])) { echo ' checked'; } ?>>Plain results (for printing)
  </form>
 <?php
 
   }
-  else {
-  }
-} elseif ($new) {
-	$Updated_Query = 'SELECT CONVERT(varchar, MAX([Date Added]), 106) AS updated FROM MID WHERE MID IN (SELECT MID FROM FID WHERE WITHDRAWN = 0)';
-	$Query_ID = mssql_query($Updated_Query, $Link_ID);
-	$row = mssql_fetch_array($Query_ID);
-	$updated = $row['updated'];
-	echo "Updated: $updated\n";
-} elseif ($withdrawn) {
-	$Updated_Query = 'SELECT CONVERT(varchar, MAX(DATE_WITHDRAWN), 106) AS updated FROM FID WHERE MID NOT IN (SELECT MID FROM FID WHERE WITHDRAWN = 0)';
-	$Query_ID = mssql_query($Updated_Query, $Link_ID);
-	$row = mssql_fetch_array($Query_ID);
-	$updated = $row['updated'];
-	echo "Updated: $updated\n";
-} elseif ($topicid) {
-	$Updated_Query = 'SELECT CONVERT(varchar, MAX([Date Added]), 106) AS updated FROM MID WHERE MID IN (SELECT MID FROM [Topic - MID Junction] WHERE TopicID=' . $topicid . ') AND MID IN (SELECT MID FROM FID WHERE WITHDRAWN = 0)';
-	$Query_ID = mssql_query($Updated_Query, $Link_ID);
-	$row = mssql_fetch_array($Query_ID);
-	$updated = $row['updated'];
-	echo "Updated: $updated\n";
-} elseif ($abstracts) {
-	if ($_GET['title']) {
-		$Updated_Query = "SELECT CONVERT(varchar, MAX([Date Added]), 106) AS updated FROM MID WHERE MID IN (SELECT MID FROM FID WHERE WITHDRAWN = 0) AND MID.[Alphabetic Title] LIKE '" . mssql_escape($_GET['title']) . "%'";
-		$Query_ID = mssql_query($Updated_Query, $Link_ID);
-		$row = mssql_fetch_array($Query_ID);
-		$updated = $row['updated'];
-		echo "Updated: $updated\n";
-	}		
-
-	
-} else {
-	$Updated_Query = 'SELECT CONVERT(varchar, MAX(DATE_OF_CHANGE), 106) AS updated FROM MID WHERE MID IN (SELECT MID FROM FID WHERE WITHDRAWN = 0)';
-	$Query_ID = mssql_query($Updated_Query, $Link_ID);
-	$row = mssql_fetch_array($Query_ID);
-	$updated = $row['updated'];
-	echo "Updated: $updated\n";
 }
 
-echo $page_content;
-
-if (! $mid)
+if (!isset($mid))
 {
   $titles_count = "SELECT COUNT(*) FROM MID LEFT OUTER JOIN FID ON MID.MID = FID.MID AND FID.WITHDRAWN = 0" . $where_clause;
   $Query_ID = mssql_query($titles_count, $Link_ID);
@@ -343,36 +255,43 @@ if (! $mid)
 
 $Main_Query = mssql_query($Query_String, $Link_ID);
 
-if (! $abstracts) {
-  echo " <ul>\n";
-}
-
 if (is_resource($Main_Query))
 {
-while ($row = mssql_fetch_array($Main_Query)) {
 
-  if (!$index && !$abstracts) {
-	if (strncasecmp($row['Alphabetic Title'], $lastTitle, 1)) {
-	  $idx = strtoupper(substr($row['Alphabetic Title'], 0, 1));
-              echo '<a href="' . $idx . '">' . $idx . "</a>, \n";
-        }
-	$lastTitle = $row['Alphabetic Title'];
-	
-  } elseif ($abstracts) {
-	echo " <ul>\n"
-	  . '  <li><a name="' . $row['MID'] . '" href="../topics/' . $row['MID'] . '">';
-	if (strtotime($row['Date Added']) > strtotime('-1 year')) {
-	  echo '<b>';
-	}
-	if ($_GET['search']) {
+if (! $index) {
+
+?>
+<table id="titles" class="row-border">
+ <thead>
+  <tr><th>MID</th><th>Alpha Title</th><th>Title</th><th>Year</th><th>Color/BW</th><th>Running Time</th><th>Formats</th><th>Abstract</th><th>Topics</th></tr>
+ </thead>
+<tbody>
+<?php
+
+} else {
+
+?>
+<table id="titles" class="row-border">
+ <thead>
+  <tr><th>MID</th><th>Alpha Title</th><th>Title</th></tr>
+ </thead>
+<tbody>
+<?php
+
+}
+
+while ($row = mssql_fetch_array($Main_Query)) {
+    if (! $index) {
+
+        echo '<tr><td>' . $row['MID'] . '</td><td>' . $row['Alphabetic Title'] . '</td><td>';
+
+	echo '<a name="' . $row['MID'] . '" href="../title/' . $row['MID'] . '">';
+	if (isset($_GET['search'])) {
 	  echo html_highlight($_GET['search'], strtoupper(strtr($row['Pretty Title'], $special_lower, $special_upper)));
 	} else {
 	  echo strtoupper(strtr($row['Pretty Title'], $special_lower, $special_upper));
 	}
-	if (strtotime($row['Date Added']) > strtotime('-1 year')) {
-	  echo '</b>';
-	}
-	echo "</a>\n   <ul>\n";
+	echo '</a></td>';
 
 	if (strncasecmp($row['MID'], 'S', 1)) {
 
@@ -391,7 +310,7 @@ SELECT [SID - MID Junction].*, SID.[Pretty Title],
 
 	  $Query_ID = mssql_query($Query_String, $Link_ID);
 
-	  echo '    <li>' . $row['Year'] . ' ----- ';
+	  echo '<td>' . $row['Year'] . '</td><td>';
 	  if (!strncasecmp($row['Color'], 'y', 1))
 	  {
 		echo 'color';
@@ -404,30 +323,16 @@ SELECT [SID - MID Junction].*, SID.[Pretty Title],
 	  {
 		echo $row['Color'];
 	  }
-	  echo ' ----- ';
+	  echo '</td><td>';
 	  if ($row['Running Time']) {
 		echo $row['Running Time'] . ' min';
 	  }
-	  if ($row['WITHDRAWN']) {
-		echo ' ----- ';
-		echo '<i>withdrawn</i>';
-	  }
-          /*
-	  else {
-		echo ' ----- ';
-		if ($row['Rental Rate']) {
-		  echo sprintf($currency, $row['Rental Rate']);
-		}
-	  }
-          */
-	  echo ' ----- ';
+	  echo '</td><td>';
           $formats = explode('/', rtrim($row['Formats'], '/'));
           foreach ($formats as $i => $format) {
             $formats[$i] = '<a href="../prints/?mid=' . $row['MID'] . '&format=' . $format . '">' . $format . '</a>';
           }
-          echo implode('/', $formats) . "</li>\n";
-
-	  echo "    <li>\n";
+          echo implode('/', $formats) . '</td><td>';
 
 	  if (is_resource($Query_ID))
 	  {
@@ -452,7 +357,7 @@ SELECT [SID - MID Junction].*, SID.[Pretty Title],
 	  // Mozilla doesn't seem to be able to handle more than about 1000 chars.
 	  if ($row['Abstract']) {
 		echo '     ';
-		if ($_GET['search']) {
+		if (isset($_GET['search'])) {
 		  echo html_highlight($_GET['search'], $row['Abstract']);
 		} else {
 		  echo $row['Abstract'];
@@ -479,11 +384,30 @@ SELECT [SID - MID Junction].*, SID.[Pretty Title],
 		echo ' (<i>' . $Restrictions[$row['RestrictionID']] . "</i>)\n";
 	  }
 
+	  if ($row['WITHDRAWN']) {
+		echo ' (<i>withdrawn</i>)';
+	  }
+
 	  echo "    </li>\n";
 
 	  if ($row['lib_url']) {
 		echo '    <li><a href="' . $row['lib_url'] . '">Access this title at the UW Libraries Media Center</a></li>'."\n";
 	  }
+
+          echo '</td><td><ul>';
+
+          $Query_String = '
+SELECT * FROM FullTopicNames
+ WHERE TopicID IN (SELECT TopicID FROM [Topic - MID Junction]
+             WHERE MID = ' . $row['MID'] . ')';
+          if ($DEBUG) echo("<pre>$Query_String</pre>\n");
+
+          $Topics_Query = mssql_query($Query_String, $Link_ID);
+          while ($topic = mssql_fetch_array($Topics_Query)) {
+              echo '<li><a href="../topic/' . $topic['TopicID'] . '">' . $topic['Topic'] . '</a></li>';
+          }
+          echo '</ul></td>';
+
 
 	} else {
 
@@ -504,7 +428,7 @@ SELECT [SID - MID Junction].*, MID.[Pretty Title],
 	  if ($DEBUG) echo("<pre>$Query_String</pre>\n");
 
 	  $Query_ID = mssql_query($Query_String, $Link_ID);
-	  echo "    <li>(<i>See listings under individual titles</i>)\n";
+	  echo "<td></td><td></td><td></td><td></td><td>(<i>See listings under individual titles</i>)\n";
 
 	  $t_links = array();
 	  while ($t_links[] = mssql_fetch_array($Query_ID)) {}
@@ -517,14 +441,7 @@ SELECT [SID - MID Junction].*, MID.[Pretty Title],
 	  while (list($key, $t_link) = each($t_links)) {
 		if (is_array($t_link)) {
                       echo '      <li value=' . $t_link['Title Number'] . '><a href="../title/' . $t_link['MID'] . '">';
-		  if (strtotime($t_link['Date Added']) > strtotime('-1 year')) {
-			echo '<b>';
-		  }
-		  echo $t_link['Pretty Title'] . "</a></li>\n";
-		  if (strtotime($t_link['Date Added']) > strtotime('-1 year')) {
-			echo '</b>';
-		  }
-
+                      echo $t_link['Pretty Title'] . "</a></li>\n";
 		}
 	  }
 	  if ($t_link[0]['Title Number']) {
@@ -532,41 +449,60 @@ SELECT [SID - MID Junction].*, MID.[Pretty Title],
 	  } else {
 		echo "     </ul>\n";
 	  }
+          echo '</td><td></td>';
 	}
-	echo "    </li>\n   </ul>\n  </ul>\n <p>\n\n";
+
+        echo '</tr>';
 
   } else {
 
-	if (isset($lastTitle) && strncasecmp($row['Alphabetic Title'], $lastTitle, 1)) {
-	  echo " </ul>\n <ul>\n";
-	}
+        echo '<tr><td>' . $row['MID'] . '</td><td>' . $row['Alphabetic Title'] . '</td><td>';
+
 	$lastTitle = $row['Alphabetic Title'];
 
-        echo '  <li><a href="../title/' . $row['MID'] . '">';
-	if (strtotime($row['Date Added']) > strtotime('-1 year')) {
-	  echo '<b>';
-	}
+        echo '  <a href="../title/' . $row['MID'] . '">';
 	if ($topicid) {
 	  echo '<i>' . str_replace(array('<i>','</i>','</i/>'), array('</i/>','<i>','</i>'), $row['Pretty Title']) . '</i>';
-	} elseif ($_GET['search']) {
+	} elseif (isset($_GET['search'])) {
 	  echo html_highlight($_GET['search'], $row['Pretty Title']);
 	} else {
 	  echo $row['Pretty Title'];
-	}
-	if (strtotime($row['Date Added']) > strtotime('-1 year')) {
-	  echo '</b>';
 	}
 	echo '</a>';
 	if (!strncasecmp($row['MID'], 'S', 1)) {
 	  echo ' (series)';
 	}
-	echo "</li>\n";
+        echo '</td></tr>';
 
   }
-
-}
 }
 
-if (! $abstracts) {
-  echo " </ul>\n";
+?>
+</tbody></table>
+<?php
+
 }
+
+if (!isset($_GET['suppressform'])) {
+
+?>
+<script>
+$(document).ready(function() {
+  $('#titles').DataTable({
+    paging: false,
+    dom: 'Bfrti',
+    buttons: [
+      'csv',
+      'excel',
+    ],
+    order: [[1, 'asc']],
+  });
+});
+</script>
+<?php
+
+}
+
+?>
+</body>
+</html>

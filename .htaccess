@@ -17,9 +17,9 @@ RewriteRule ^(.+?)(/.*)?$ $1.php$2 [QSA,L]
 #emc
 RewriteRule ^titles$ titles/ [R,L]
 RewriteRule ^titles/$ titles.php [QSA,L]
-RewriteRule ^titles/(.+)$ titles.php?abstracts=1&title=$1 [QSA,L]
+RewriteRule ^titles/(.+)$ titles.php?title=$1 [QSA,L]
 
-RewriteRule ^title/(S?[0-9]+)$ title.php?mid=$1 [QSA,L]
+RewriteRule ^title/(S?[0-9]+)$ titles.php?mid=$1 [QSA,L]
 RewriteRule ^title/(.+)$ titles.php?title=$1 [QSA,L]
 
 RewriteRule ^prints$ prints/ [R,L]

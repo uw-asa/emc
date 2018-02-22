@@ -1,9 +1,7 @@
 <?php
 
-$DEBUG=$_GET['debug'];
-
 include('dbinfo.php');
-include('../misc.php');
+include('misc.php');
 $Database="emc";
 
 $Link_ID = mssql_connect($dbhost, $dbuser, $dbpass);
